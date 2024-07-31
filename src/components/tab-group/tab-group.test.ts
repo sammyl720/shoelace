@@ -229,6 +229,74 @@ describe('<sl-tab-group>', () => {
       tabGroup.disconnectedCallback();
     });
 
+    it('automatically hides scroll to left button when there are no tabs overflowing on the left', async () => {
+      const numberOfElements = 12;
+      const tabGroup = await fixture<SlTabGroup>(html`<sl-tab-group auto-hide-scroll-buttons> ${generateTabs(numberOfElements)} </sl-tab-group>`);
+
+      await waitForScrollButtonsToBeRendered(tabGroup);
+
+      const scrollToLeftButton = tabGroup.shadowRoot?.querySelector('sl-icon-button[part*="scroll-button--start"]');
+
+      expect(scrollToLeftButton, 'Scroll start button should be hidden by default').to.have.class("tab-group__scroll-button--start--hidden");
+
+      tabGroup.disconnectedCallback();
+    });
+
+    it('automatically shows scroll to left button when there are tabs overflowing on the left', async () => {
+      const numberOfElements = 12;
+      const tabGroup = await fixture<SlTabGroup>(html`<sl-tab-group auto-hide-scroll-buttons> ${generateTabs(numberOfElements)} </sl-tab-group>`);
+
+      await waitForScrollButtonsToBeRendered(tabGroup);
+
+      const scrollToLeftButton = tabGroup.shadowRoot?.querySelector('sl-icon-button[part*="scroll-button--start"]');
+      const scrollToRightButton = tabGroup.shadowRoot?.querySelector('sl-icon-button[part*="scroll-button--end"]');
+
+      const firstTab = tabGroup.querySelector(`[panel="tab-0"]`);
+      expect(firstTab).not.to.be.null;
+
+      await clickOnElement(scrollToRightButton!);
+      await elementUpdated(tabGroup);
+
+      await waitForScrollingToEnd(firstTab!);
+
+      expect(scrollToLeftButton, 'Scroll start button should not be hidden when there are tabs overflowing on the left').to.not.have.class("tab-group__scroll-button--start--hidden");
+
+      tabGroup.disconnectedCallback();
+    });
+
+    it('automatically show scroll to right button when there are overflowing on the right', async () => {
+      const numberOfElements = 12;
+      const tabGroup = await fixture<SlTabGroup>(html`<sl-tab-group auto-hide-scroll-buttons> ${generateTabs(numberOfElements)} </sl-tab-group>`);
+
+      await waitForScrollButtonsToBeRendered(tabGroup);
+      const scrollToRightButton = tabGroup.shadowRoot?.querySelector('sl-icon-button[part*="scroll-button--end"]');
+
+      expect(scrollToRightButton, 'Scroll end button should not be hidden by default.').to.not.have.class("tab-group__scroll-button--end--hidden");
+
+      tabGroup.disconnectedCallback();
+    });
+
+    it('automatically hides scroll to right button when there are no tabs overflowing on the right', async () => {
+      const numberOfElements = 12;
+      const tabGroup = await fixture<SlTabGroup>(html`<sl-tab-group auto-hide-scroll-buttons> ${generateTabs(numberOfElements)} </sl-tab-group>`);
+
+      await waitForScrollButtonsToBeRendered(tabGroup);
+
+      const lastTab = tabGroup.querySelector(`[panel="tab-${numberOfElements - 1}"]`);
+      expect(lastTab).not.to.be.null;
+
+      const scrollToRightButton = tabGroup.shadowRoot?.querySelector('sl-icon-button[part*="scroll-button--end"]');
+
+      await clickOnElement(scrollToRightButton!);
+      await elementUpdated(tabGroup);
+
+      await waitForScrollingToEnd(lastTab!);
+
+      expect(scrollToRightButton, 'Scroll end button should be hidden when scrolled to end.').to.have.class("tab-group__scroll-button--end--hidden");
+
+      tabGroup.disconnectedCallback();
+    });
+
     it('does not show scroll buttons on too many tabs if deactivated', async () => {
       const tabGroup = await fixture<SlTabGroup>(html`<sl-tab-group> ${generateTabs(30)} </sl-tab-group>`);
       tabGroup.noScrollControls = true;
