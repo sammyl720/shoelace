@@ -378,11 +378,48 @@ export default class SlTabGroup extends ShoelaceElement {
    */
   private scrollOffset = 1;
 
+  private updateScrollStartVisibility()
+  {
+    const hideScrollStartButton = this.scrollFromStart() <= this.scrollOffset;
+    const willUpdateVisibilty = this.shouldHideScrollStartButton !== hideScrollStartButton;
+    this.shouldHideScrollStartButton = hideScrollStartButton;
+    return willUpdateVisibilty;
+  }
+
+  private updateScrollEndVisibilty()
+  {
+    const hideScrollEndButton = this.isScrolledToEnd();
+    const willUpdateVisibilty = this.shouldHideScrollEndButton !== hideScrollEndButton;
+    this.shouldHideScrollEndButton = hideScrollEndButton;
+    return willUpdateVisibilty;
+  }
+
+  private swapFocus(currentElement: HTMLElement | null, targetElement: HTMLElement | null)
+  {
+    if (currentElement?.matches(":focus"))
+    {
+      targetElement?.focus();
+    }
+  }
+
   @eventOptions({ passive: true })
   private updateScrollButtons() {
     if (this.hasScrollControls && this.autoHideScrollButtons) {
-      this.shouldHideScrollStartButton = this.scrollFromStart() <= this.scrollOffset;
-      this.shouldHideScrollEndButton = this.isScrolledToEnd();
+      const didUpdateScrollStart = this.updateScrollStartVisibility();
+      const diUpdateScrollEnd = this.updateScrollEndVisibilty();
+      if (didUpdateScrollStart || diUpdateScrollEnd)
+      {
+        const scrollButtonStart: HTMLElement | null = this.renderRoot.querySelector(".tab-group__scroll-button--start");
+        const scrollButtonEnd: HTMLElement | null = this.renderRoot.querySelector(".tab-group__scroll-button--end");
+        if (didUpdateScrollStart)
+        {
+          this.swapFocus(scrollButtonStart, scrollButtonEnd);
+        }
+        if (diUpdateScrollEnd)
+        {
+          this.swapFocus(scrollButtonEnd, scrollButtonStart)
+        }
+      }
     }
   }
 
